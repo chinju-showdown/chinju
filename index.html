@@ -273,6 +273,24 @@ h1 .tilt{display:inline-block;transform:rotate(-4deg);color:var(--saffron);}
 .dailyb b{font-family:var(--display);font-weight:400;font-size:18px;}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff4a3a;box-shadow:0 0 8px #ff4a3a;animation:burn 1s infinite alternate;}
 .hb.ex{background:linear-gradient(150deg,#b8ffcf,#3ccf86);}
+.hb.zk{background:linear-gradient(150deg,#fff3c8,#d8a83a);}
+#vZukan{display:flex;flex-direction:column;gap:10px;}#vZukan[hidden]{display:none}
+.zkcount{font-weight:800;}.zkcount b{color:var(--sand);font-size:20px;}.zkbar{display:block;height:8px;border-radius:4px;background:#0a1416;overflow:hidden;margin-top:6px;}.zkbar i{display:block;height:100%;background:linear-gradient(90deg,#4be37a,#ffd36a);}
+.zktabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;}.zktabs button{flex:none;border:1px solid var(--line);background:#0e2420;color:var(--mute);border-radius:999px;padding:6px 12px;font-weight:800;font-size:12px;}.zktabs button.on{background:#d8a83a;color:#1a1208;}
+.zklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;}
+.zkcard{position:relative;border:2px solid var(--line);background:#0e2420;border-radius:14px;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text);}
+.zkcard canvas{width:72px;height:72px;}.zkcard b{font-size:11px;line-height:1.2;text-align:center;min-height:2.4em;display:flex;align-items:center;}.zkcard .rchip{font-size:9px;padding:1px 6px;}
+.zkcard.no{opacity:.75;}.zkcard.no b{color:var(--mute);}.zkcard.rb5{border-color:#c46bff;}.zkcard.rb6{border-color:#ff8adf;}
+.zkno{position:absolute;left:6px;top:4px;font-size:9px;color:var(--mute);font-weight:800;}
+#zkDlg{position:fixed;inset:0;z-index:22;display:grid;place-items:center;background:rgba(6,14,16,.78);}#zkDlg[hidden]{display:none}
+.zkcard2 h2{margin:0;text-align:center;font-family:var(--display);font-weight:400;color:var(--sand);font-size:24px;}
+#zkBody{display:flex;flex-direction:column;gap:8px;}.zkhead{display:flex;gap:6px;align-items:center;}.zkhead .zkno{position:static;font-size:12px;}
+#zkP{width:180px;height:180px;align-self:center;display:block;margin:0 auto;}
+.zksci{text-align:center;font-style:italic;color:var(--mute);font-size:12px;}
+.zkinfo{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13px;}.zkinfo span{color:var(--mute);}
+.zkfact{margin:0;line-height:1.7;font-size:13px;background:#0a1a18;border-radius:10px;padding:8px 10px;}
+.zkmove{display:flex;flex-direction:column;gap:2px;font-size:13px;border-left:4px solid #ff9a2e;padding-left:8px;}.zkmove.sup{border-color:#f5b22a;}.zkmove span{color:var(--mute);font-size:12px;}
+.zkhow{display:flex;flex-direction:column;gap:2px;font-size:13px;background:#1a2a20;border-radius:10px;padding:8px 10px;}.zkhow b{color:#7dffa0;}
 .hb.two{background:linear-gradient(150deg,#ffe0a0,#ff8a3a);}
 #vNet .netbody{display:flex;flex-direction:column;gap:10px;}#vNet textarea,#mkCode{height:72px;min-height:0;resize:vertical;}
 .qrbox{display:grid;place-items:center;background:#fff;border-radius:12px;padding:8px;}.qrcv{width:min(78vw,300px);height:auto;image-rendering:pixelated;}
@@ -415,6 +433,7 @@ h1 .tilt{display:inline-block;transform:rotate(-4deg);color:var(--saffron);}
     <button class="dailyb anc" id="ancBtn" hidden></button>
     <div class="homegrid">
       <button class="hb bt" data-go="mode"><b>バトル</b><span>ソロ・ボス・ガチバトル</span></button>
+      <button class="hb zk" data-go="zukan"><b>珍獣図鑑</b><span>集めた珍獣を見る</span></button>
       <button class="hb two" data-go="net"><b>2人で遊ぶ</b><span>スマホどうしで直接対戦</span></button>
       <button class="hb mk" data-go="maker"><b>マップを作る</b><span>自分だけのマップ・コードで交換</span></button>
       <button class="hb rpg" id="rpgBtn"><b>ちびペット冒険記</b><span id="rpgSub"></span></button>
@@ -472,6 +491,13 @@ h1 .tilt{display:inline-block;transform:rotate(-4deg);color:var(--saffron);}
     <div class="blist" id="bossList"></div>
   </div>
 
+  <!-- ===== ZUKAN ===== -->
+  <div class="view" id="vZukan" hidden>
+    <div class="navrow"><button class="backb" data-go="home">← ホーム</button></div>
+    <div class="sect"><h3>珍獣図鑑</h3><span>タップでくわしく見る</span></div>
+    <div class="zkcount" id="zkCount"></div><div class="zktabs" id="zkTabs"></div><div class="zklist" id="zkList"></div>
+  </div>
+<div id="zkDlg" hidden><div class="epcard zkcard2"><div id="zkBody"></div><button class="backb" id="zkClose">とじる</button></div></div>
   <!-- ===== 2P NET ===== -->
   <div class="view" id="vNet" hidden>
     <div class="navrow"><button class="backb" data-go="home">← ホーム</button></div>
@@ -2255,11 +2281,11 @@ function resHTML(){const ao=prog.ao||{};
     `<span class="res" title="アニマルオーブ（攻撃・スピード・リロード）"><i class="ico ao">攻</i>${ao.atk||0} <i class="ico ao">速</i>${ao.spd||0} <i class="ico ao">装</i>${ao.rel||0}</span>`;}
 function refreshRes(){const h=resHTML();for(const el of document.querySelectorAll('.resbar:not(#rReward)'))el.innerHTML=h;}
 /* ---- views ---- */
-const VIEWS={net:'vNet',maker:'vMaker',boss:'vBoss',mode:'vMode',gachi:'vGachi',home:'vHome',levels:'vLevels',lvd:'vLvd',gacha:'vGacha',titles:'vTitles',select:'vSelect',set:'vSet',rank:'vRank',daily:'vDaily',exchange:'vExchange'};
+const VIEWS={zukan:'vZukan',net:'vNet',maker:'vMaker',boss:'vBoss',mode:'vMode',gachi:'vGachi',home:'vHome',levels:'vLevels',lvd:'vLvd',gacha:'vGacha',titles:'vTitles',select:'vSelect',set:'vSet',rank:'vRank',daily:'vDaily',exchange:'vExchange'};
 let curView='home',lvdId='hashi';
 function show(v){curView=v;for(const k in VIEWS)$(VIEWS[k]).hidden=k!==v;refreshRes();
   if(v==='home')renderHome();else if(v==='levels')renderLevels();else if(v==='lvd')renderLvd();else if(v==='gacha')renderGacha();
-  else if(v==='titles')renderTitles();else if(v==='rank')renderRank();else if(v==='daily')renderDaily();else if(v==='exchange')renderExchange();else if(v==='maker')renderMaker();else if(v==='net'){if(NET.state==='cpu')NET.state=NET.dc&&NET.dc.readyState==='open'?'lobby':'menu';renderNet();}else if(v==='boss')renderBossList();else if(v==='mode'){renderMode();renderAnc();}else if(v==='gachi')renderGachi();else if(v==='select'){renderSelHead();if(!unlocked(CH[selected]))selected=Math.max(0,CH.findIndex(c=>c.id===favCh().id));buildRoster();renderSpec();}
+  else if(v==='titles')renderTitles();else if(v==='rank')renderRank();else if(v==='daily')renderDaily();else if(v==='exchange')renderExchange();else if(v==='maker')renderMaker();else if(v==='zukan')renderZukan();else if(v==='net'){if(NET.state==='cpu')NET.state=NET.dc&&NET.dc.readyState==='open'?'lobby':'menu';renderNet();}else if(v==='boss')renderBossList();else if(v==='mode'){renderMode();renderAnc();}else if(v==='gachi')renderGachi();else if(v==='select'){renderSelHead();if(!unlocked(CH[selected]))selected=Math.max(0,CH.findIndex(c=>c.id===favCh().id));buildRoster();renderSpec();}
   $('menu').scrollTop=0;}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;audioInit();show(b.dataset.go);});
 const favCh=()=>{const f=chById(prog.fav);return f&&unlocked(f)?f:chById('hashi');};
@@ -2764,7 +2790,6 @@ function animMenuPortrait(dt){menuAnimT+=dt;if($('menu').hidden&&$('gfx').hidden
   if(!$('gfx').hidden){if(gRev)draw('gRevP',gRev);return;}
   if(curView==='select')draw('bigP',CH[selected]);else if(curView==='home')draw('favP',favCh());else if(curView==='lvd'){draw('lvP',chById(lvdId));const q=$('skP');if(q&&q.offsetParent)portrait(q,chById(lvdId),84,menuAnimT,true,skinDef(chById(lvdId)));}}
 $('eggBtn').onclick=openEgg;$('eggCv').onclick=tapEgg;$('eggClose').onclick=closeEgg;$('eggNext').onclick=()=>{openEgg();};
-setTimeout(()=>{try{if(!RP().base&&$('menu')&&!$('menu').hidden)openEggPick();}catch(e){}},900);
 show('home');{const n=[];derivedGods(n);if(n.length){saveProg();toast(n.join(' / '));}}checkTitles();
 
 /* =================== game core =================== */
@@ -4524,9 +4549,39 @@ function netClientResult(){const g=game;$('result').hidden=false;$('rUnlock').hi
   $('rMsg').textContent=g.won?'相手の3体を全部たおした！':'くやしい！もう一回やろう。';$('rReward').innerHTML='';sUI(g.won?'win':'lose',0,0,true);
   $('again').textContent='ロビーへ';$('again').onclick=()=>toMenu('net');$('back').textContent='ロビーへ';$('back').onclick=()=>toMenu('net');}
 
+/* =================== 珍獣図鑑 (catalog) =================== */
+const ZK_F=[{k:'all',n:'すべて'},{k:'0',n:'コモン'},{k:'1',n:'レア'},{k:'2',n:'エピック'},{k:'3',n:'ウルトラ'},{k:'4',n:'伝説'},{k:'5',n:'神'},{k:'anc',n:'古代生物'},{k:'own',n:'持っている'},{k:'not',n:'まだ'}];
+let zkF='all',zkCur=null,zkRaf=0;
+function zkHow(ch){if(ch.orig)return'ちびペット冒険記で、魔王ルシファーをたおすと仲間になる。';if(ch.lock)return ch.cond||'条件を満たすと解放';
+  return ch.ancient?'ガチャ（'+RAR[ch.rar].n+'）で出会える。古代祭で3位以内に2回入ってももらえる。':'ガチャ（'+RAR[ch.rar].n+'）で出会える。';}
+function renderZukan(){const all=CH.filter(c=>!c.orig||unlocked(c)),own=all.filter(unlocked).length;
+  $('zkCount').innerHTML=`集めた珍獣 <b>${own}</b> / ${all.length}<i class="zkbar"><i style="width:${Math.round(100*own/all.length)}%"></i></i>`;
+  $('zkTabs').innerHTML=ZK_F.map(f=>`<button class="${zkF===f.k?'on':''}" data-zf="${f.k}">${f.n}</button>`).join('');
+  for(const b of document.querySelectorAll('[data-zf]'))b.onclick=()=>{zkF=b.dataset.zf;renderZukan();};
+  const L=all.filter(c=>zkF==='all'?true:zkF==='anc'?c.ancient:zkF==='own'?unlocked(c):zkF==='not'?!unlocked(c):c.rar===+zkF);
+  const box=$('zkList');box.innerHTML='';
+  L.forEach(ch=>{const o=unlocked(ch),no=all.indexOf(ch)+1,b=document.createElement('button');b.className='zkcard rb'+ch.rar+(o?'':' no');
+    b.innerHTML=`<span class="zkno">No.${String(no).padStart(3,'0')}</span><canvas></canvas><b>${o?ch.name:'？？？'}</b>${rchip(ch)}`;
+    b.onclick=()=>openZk(ch,no);box.appendChild(b);portrait(b.querySelector('canvas'),ch,72);});
+  if(!L.length)box.innerHTML='<p class="hint">ここにはまだいません</p>';}
+function openZk(ch,no){zkCur=ch;const o=unlocked(ch),a=ch.atk,s=ch.sup;
+  $('zkBody').innerHTML=`<div class="zkhead"><span class="zkno">No.${String(no).padStart(3,'0')}</span>${rchip(ch)}${ch.ancient?'<span class="rchip" style="background:#c8a46a">古代</span>':''}</div>
+    <canvas id="zkP"></canvas><h2>${o?ch.name:'？？？'}</h2>${o?`<div class="zksci">${ch.sci||''}</div>`:''}
+    ${o?`<div class="zkinfo"><span>すみか</span><b>${ch.hab||'-'}</b><span>タイプ</span><b>${ch.role||'-'}</b><span>レベル</span><b>Lv ${lvOf(ch)}</b><span>トロフィー</span><b>🏆 ${troOf(ch)}（${chRank(ch)}）</b><span>スキン</span><b>${skinOwned(ch)?skinDef(ch).n+(skinWorn(ch)?'（着ている）':''):'まだ持っていない'}</b></div>
+      <p class="zkfact">${ch.fact||''}</p><div class="stats">${statRows(ch,lvOf(ch))}</div>
+      <div class="zkmove"><b>通常攻撃：${a.name||''}</b><span>${a.desc||''}</span></div><div class="zkmove sup"><b>必殺技：${s.name||''}</b><span>${s.desc||''}</span></div>`
+     :`<p class="zkfact">まだ出会っていない珍獣。どんな姿なんだろう…？</p>`}
+    <div class="zkhow"><b>手に入れ方</b><span>${zkHow(ch)}</span></div>`;
+  $('zkDlg').hidden=false;cancelAnimationFrame(zkRaf);let t=0,lt=performance.now();
+  const loop=now=>{if($('zkDlg').hidden||zkCur!==ch)return;t+=(now-lt)/1000;lt=now;const p=$('zkP');if(p)portrait(p,ch,p.getBoundingClientRect().width||180,t);zkRaf=requestAnimationFrame(loop);};zkRaf=requestAnimationFrame(loop);}
+function closeZk(){$('zkDlg').hidden=true;zkCur=null;cancelAnimationFrame(zkRaf);}
+$('zkClose').onclick=closeZk;$('zkDlg').addEventListener('pointerdown',e=>{if(e.target.id==='zkDlg')closeZk();});
+document.body.appendChild($('zkDlg'));
+
 /* ---- swipe-back / back button: go back inside the game; on home, back twice to close ---- */
 let exitArm=0;
 function onBack(){
+  if(!$('zkDlg').hidden){closeZk();return true;}
   if(!$('scanOv').hidden){closeScan();return true;}
   if(!$('eggPick').hidden){$('eggPick').hidden=true;return true;}
   if(!$('rpgPanel').hidden){closeRpgPanel();return true;}
