@@ -4618,18 +4618,23 @@ function onBack(){
     if(game.paused)resumeGame();else pauseGame();return true;}
   if(curView!=='home'){const b=$(VIEWS[curView]).querySelector('.navrow .backb[data-go]');show(b?b.dataset.go:'home');return true;}
   const now=Date.now();if(now-exitArm<2500)return false;
-  exitArm=now;toast('もう一回スワイプすると閉じます');return true;}
+  exitArm=now;toast('もう一回スワイプすると閉じます');prepExit();return true;}
+/* after the warning, stop catching the back gesture so the next swipe really leaves the page */
+let exitOpen=false,ignorePop=0;
+function prepExit(){exitOpen=true;try{if(cw){const w=cw;cw=null;w.destroy();}}catch(e){}
+  if(hDepth>0){ignorePop=1;const n=hDepth;hDepth=0;try{history.go(-n);}catch(e){ignorePop=0;}}
+  clearTimeout(prepExit.t);prepExit.t=setTimeout(()=>{exitOpen=false;},2500);}
 /* Android Chrome: CloseWatcher catches the back swipe directly (no history needed).
    Fallback / other browsers: one guard history entry per tap (browsers ignore entries added without a tap). */
 let hDepth=0,hLast=0,cw=null;const HMAX=12,HAS_CW=typeof window.CloseWatcher==='function';
 function exitApp(){try{if(cw){cw.destroy();cw=null;}}catch(e){}try{history.go(-(hDepth+1));}catch(e){}setTimeout(()=>{try{window.close();}catch(e){}},300);}
-function armCW(){if(!HAS_CW||cw)return;try{const w=new CloseWatcher();w.onclose=()=>{if(cw===w)cw=null;if(onBack())armCW();else exitApp();};cw=w;}catch(e){cw=null;}}
+function armCW(){if(!HAS_CW||cw||exitOpen)return;try{const w=new CloseWatcher();w.onclose=()=>{if(cw===w)cw=null;if(onBack()){if(!exitOpen)armCW();}else exitApp();};cw=w;}catch(e){cw=null;}}
 try{history.replaceState({chj:0},'');
-  const addGuard=()=>{armCW();const n=Date.now();if(n-hLast<250||hDepth>=HMAX)return;hLast=n;try{history.pushState({chj:hDepth+1},'');hDepth++;}catch(e){}};
+  const addGuard=()=>{if(exitOpen){exitOpen=false;clearTimeout(prepExit.t);}armCW();const n=Date.now();if(n-hLast<250||hDepth>=HMAX)return;hLast=n;try{history.pushState({chj:hDepth+1},'');hDepth++;}catch(e){}};
   window.addEventListener('pointerup',addGuard,true);window.addEventListener('keydown',addGuard,true);
-  window.addEventListener('popstate',()=>{hDepth=Math.max(0,hDepth-1);
+  window.addEventListener('popstate',()=>{if(ignorePop){ignorePop=0;return;}hDepth=Math.max(0,hDepth-1);
     if(!onBack()){exitApp();return;}
-    if(!HAS_CW){try{history.pushState({chj:hDepth+1},'');hDepth++;}catch(e){}}});
+    if(!HAS_CW&&!exitOpen){try{history.pushState({chj:hDepth+1},'');hDepth++;}catch(e){}}});
   armCW();}catch(e){}
 let last=performance.now();
 function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;
