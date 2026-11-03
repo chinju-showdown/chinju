@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0e2420"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="珍獣ショーダウン"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"></head><body>
 <title>珍獣ショーダウン</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -586,6 +586,7 @@ h1 .tilt{display:inline-block;transform:rotate(-4deg);color:var(--saffron);}
   <!-- ===== SETTINGS ===== -->
   <div class="view" id="vSet" hidden>
     <div class="navrow"><button class="backb" data-go="home">← ホーム</button></div>
+    <section class="aobox" id="pwaBox"><h4>アプリとして使う</h4><p class="hint" id="pwaMsg" style="text-align:left"></p><button class="bigb" id="pwaBtn" hidden>アプリとしてインストール</button></section>
     <section class="sound" aria-label="サウンド設定">
       <div class="sect"><h3>サウンド</h3><span>タップで試聴できます</span></div>
       <div class="srow"><span class="slbl">音楽</span><div class="seg" id="musSeg">
@@ -2294,6 +2295,7 @@ const VIEWS={zukan:'vZukan',net:'vNet',maker:'vMaker',boss:'vBoss',mode:'vMode',
 let curView='home',lvdId='hashi';
 function show(v){curView=v;for(const k in VIEWS)$(VIEWS[k]).hidden=k!==v;refreshRes();
   if(v==='home')renderHome();else if(v==='levels')renderLevels();else if(v==='lvd')renderLvd();else if(v==='gacha')renderGacha();
+  if(v==='set')try{renderPwa();}catch(e){}
   else if(v==='titles')renderTitles();else if(v==='rank')renderRank();else if(v==='daily')renderDaily();else if(v==='exchange')renderExchange();else if(v==='maker')renderMaker();else if(v==='zukan')renderZukan();else if(v==='net'){if(NET.state==='cpu')NET.state=NET.dc&&NET.dc.readyState==='open'?'lobby':'menu';renderNet();}else if(v==='boss')renderBossList();else if(v==='mode'){renderMode();renderAnc();}else if(v==='gachi')renderGachi();else if(v==='select'){renderSelHead();if(!unlocked(CH[selected]))selected=Math.max(0,CH.findIndex(c=>c.id===favCh().id));buildRoster();renderSpec();}
   $('menu').scrollTop=0;}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;audioInit();show(b.dataset.go);});
@@ -4603,6 +4605,17 @@ function closeZk(){$('zkDlg').hidden=true;zkCur=null;cancelAnimationFrame(zkRaf)
 $('zkClose').onclick=closeZk;$('zkDlg').addEventListener('pointerdown',e=>{if(e.target.id==='zkDlg')closeZk();});
 document.body.appendChild($('zkDlg'));
 
+/* ---- PWA: install as an app (works on the GitHub page) ---- */
+let pwaEvt=null;const isApp=()=>{try{return matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}};
+function renderPwa(){const m=$('pwaMsg'),b=$('pwaBtn');if(!m)return;const ios=/iPhone|iPad|iPod/.test(navigator.userAgent);
+  if(isApp()){m.innerHTML='<b style="color:#7dffa0">アプリとして起動中です</b>（全画面）。';b.hidden=true;return;}
+  if(pwaEvt){m.textContent='ボタンを押すと、ホーム画面にアプリとして入ります。開くと全画面で遊べます。';b.hidden=false;return;}
+  b.hidden=true;m.innerHTML=ios?'Safariの下の「共有」ボタン（□に↑）→「<b>ホーム画面に追加</b>」で、アプリとして使えます。':
+    location.hostname.endsWith('github.io')?'Chromeの右上「︙」→「<b>アプリをインストール</b>」（または「ホーム画面に追加」→「インストール」）で、アプリとして使えます。':'GitHubのページ（ngagugly-ship-it.github.io/chinju）から開くと、アプリとしてインストールできます。';}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();pwaEvt=e;renderPwa();});
+window.addEventListener('appinstalled',()=>{pwaEvt=null;toast('アプリとしてインストールしました！');renderPwa();});
+$('pwaBtn').onclick=async()=>{if(!pwaEvt)return;pwaEvt.prompt();try{await pwaEvt.userChoice;}catch(e){}pwaEvt=null;renderPwa();};
+try{if('serviceWorker' in navigator&&location.protocol==='https:'&&location.hostname.endsWith('github.io'))navigator.serviceWorker.register('sw.js').catch(()=>{});}catch(e){}
 /* ---- swipe-back / back button: go back inside the game; on home, back twice to close ---- */
 let exitArm=0;
 function onBack(){
