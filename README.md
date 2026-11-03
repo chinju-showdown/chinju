@@ -2,7 +2,7 @@
 
 珍獣の対戦ゲーム「珍獣ショーダウン」。ハシビロコウ、ラーテル、ダイオウグソクムシ…世界の珍獣80種類以上で戦う、ブラウザのバトルロイヤルゲームです。
 
-▶ **遊ぶ**：https://ngagugly-ship-it.github.io/chinju/
+▶ **遊ぶ**：https://chinju-showdown.github.io/chinju/
 
 ## できること
 
