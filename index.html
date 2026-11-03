@@ -2582,9 +2582,14 @@ const TITLES=[
 const T_BY={};TITLES.forEach(t=>T_BY[t.id]=t);
 let toastQ=[],toastOn=false;
 function toast(msg){toastQ.push(msg);if(!toastOn)nextToast();}
-function nextToast(){const m=toastQ.shift();if(!m){toastOn=false;return;}toastOn=true;const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.appendChild(d);try{sUI('r3',0,0,true);}catch(e){}
+function nextToast(){const m=toastQ.shift();if(!m){toastOn=false;return;}toastOn=true;const d=document.createElement('div');d.className='toast';d.textContent=m;(game?$('stage'):document.body).appendChild(d);try{sUI('r3',0,0,true);}catch(e){}
   setTimeout(()=>{d.remove();nextToast();},2600);}
-function giveTitle(id){if(!T_BY[id]||prog.titles[id])return;prog.titles[id]=true;if(!prog.tsel)prog.tsel=id;saveProg();const t=T_BY[id];toast('称号「'+t.name+'」を手に入れた！');}
+function giveTitle(id){if(!T_BY[id]||prog.titles[id])return;prog.titles[id]=true;if(!prog.tsel)prog.tsel=id;saveProg();const t=T_BY[id];if(game&&TITLE_HOLD.has(game.mode)&&!game.titleFlushed){(game.tq||(game.tq=[])).push(t.name);return;}toast('称号「'+t.name+'」を手に入れた！');}
+const TITLE_HOLD=new Set(['solo','boss','ancient','gachi','custom','duo','netc']);
+function titleFlush(){const g=game;if(!g||g.titleFlushed)return;g.titleFlushed=true;const ru=$('rUnlock');if(!ru)return;
+  const items=(ru.hidden?[]:String(ru.textContent||'').split(' / ').filter(x=>x)).concat((g.tq||[]).map(n=>'称号「'+n+'」を手に入れた！'));
+  ru.innerHTML='';for(const x of items){const d=document.createElement('div');d.textContent=x;ru.appendChild(d);}ru.hidden=!items.length;
+  if(g.tq&&g.tq.length){try{sUI('r3',0,0,true);}catch(e){}}g.tq=[];}
 /* counter-based titles: thresholds checked whenever counters change */
 const T_CNT=[['f_gasfr','gasT',100],['f_r10','r10',10],['f_empty','empty',100],['f_platy','platW',5],['f_dino','ancW',10],['f_rock','rockHit',5],['f_hungry','cubes',500],['f_stomp','bossDeaths',10],
   ['f_hazure','eggC',10],['f_dress','skinSw',10],['f_fickle','favSw',20],['f_train','pracK',1000],['f_target','breaks',100],['f_gekoku','comW',10],['f_bossfan','bossN',50],['b_k1000','kills',1000],['b_box','boxes',100],
@@ -4037,7 +4042,8 @@ function settleBoss(won){const g=game;if(g.settled)return g.news;g.settled=true;
   saveProg();checkTitles();g.news=news;return news;}
 const fmtT=tt=>Math.floor(tt/60)+':'+String(Math.floor(tt%60)).padStart(2,'0');
 const rewHTML=v=>`<span class="res"><i class="ico orb"></i>+${v}<small>レベル玉</small></span><span class="res"><i class="ico cred">C</i>+${v*3}<small>クレジット</small></span>`;
-function showResult(){
+function showResult(){showResult0();titleFlush();}
+function showResult0(){
   const g=game,u=player;$('result').hidden=false;$('rUnlock').hidden=true;rvOnResult();
   $('rKills').textContent=u.kills;$('rCubes').textContent=u.cubes;$('rTime').textContent=fmtT(g.won?g.t:(u.alive?g.t:u.diedAt));
   const r=$('rRank'),rt=$('rTro');
@@ -4087,6 +4093,7 @@ function toMenu(dest){let d=dest;
     if(typeof d!=='string')d=m==='replay'?'replay':m==='ancient'?'home':m==='gachi'?'gachi':m==='practice'?'lvd':m==='boss'?'boss':m==='rpg'?'home':m==='custom'?'maker':(m==='duo'||m==='netc')?'net':'select';}
   if(game&&(game.net||game.mode==='netc')&&!game.over)netSend({k:'abort'});
   if(game&&game.mode==='rpg')saveProg();$('talk').hidden=true;$('rpgPanel').hidden=true;talkQ=[];talkDone=null;
+  if(game&&game.tq&&game.tq.length&&!game.titleFlushed){const q=game.tq.slice();setTimeout(()=>q.forEach(n=>toast('称号「'+n+'」を手に入れた！')),300);}
   game=null;player=null;$('result').hidden=true;$('pauseOv').hidden=true;$('hudbtns').hidden=true;$('menu').hidden=false;show(typeof d==='string'?d:'select');}
 $('go').onclick=()=>{if(!unlocked(CH[selected]))return;if(selMode==='boss')startBoss(selected);else if(selMode==='custom')startCustom(selected);else if(selMode==='ancient')startAncient(selected);else startGame(selected);};
 $('quit').onclick=()=>toMenu();
@@ -4678,7 +4685,8 @@ function netClientUpdate(dt){const g=game;if(!player)return;recTick();
   for(let i=effects.length-1;i>=0;i--){effects[i].t+=dt;if(effects[i].t>=effects[i].T)effects.splice(i,1);}
   for(const z of zones)z.t-=dt;
   let focus=player.alive?player:units.find(u=>u.alive&&u.team===player.team)||player;const k=1-Math.exp(-dt*8);cam.x+=(focus.x-cam.x)*k;cam.y+=(focus.y-cam.y)*k;}
-function netClientResult(){const g=game;rvOnResult();$('result').hidden=false;$('rUnlock').hidden=true;$('rKills').textContent=player?player.kills||0:0;$('rCubes').textContent=player?player.cubes||0:0;$('rTime').textContent=fmtT(g.t);
+function netClientResult(){netClientResult0();titleFlush();}
+function netClientResult0(){const g=game;rvOnResult();$('result').hidden=false;$('rUnlock').hidden=true;$('rKills').textContent=player?player.kills||0:0;$('rCubes').textContent=player?player.cubes||0:0;$('rTime').textContent=fmtT(g.t);
   const r=$('rRank');r.textContent=g.won?'勝ち':'負け';r.classList.toggle('win',g.won);$('rTitle').textContent='1対1・3体勝負（2人対戦）';$('rTro').textContent='';$('rTroTotal').textContent='ともだち対戦（ごほうびはありません）';
   $('rMsg').textContent=g.won?'相手の3体を全部たおした！':'くやしい！もう一回やろう。';$('rReward').innerHTML='';sUI(g.won?'win':'lose',0,0,true);
   $('again').textContent='ロビーへ';$('again').onclick=()=>toMenu('net');$('back').textContent='ロビーへ';$('back').onclick=()=>toMenu('net');}
