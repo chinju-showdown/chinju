@@ -4,6 +4,8 @@
 
 ▶ **遊ぶ**：https://chinju-showdown.github.io/chinju/
 
+𝕏 **公式X**：[@chinju_showdown](https://x.com/chinju_showdown)（新しい珍獣やアップデートのお知らせ）
+
 ## できること
 
 - ソロバトル（10頭のバトルロイヤル）
