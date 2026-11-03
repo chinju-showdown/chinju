@@ -293,6 +293,7 @@ h1 .tilt{display:inline-block;transform:rotate(-4deg);color:var(--saffron);}
 .zkhow{display:flex;flex-direction:column;gap:2px;font-size:13px;background:#1a2a20;border-radius:10px;padding:8px 10px;}.zkhow b{color:#7dffa0;}
 .hb.two{background:linear-gradient(150deg,#ffe0a0,#ff8a3a);}
 #vNet .netbody{display:flex;flex-direction:column;gap:10px;}#vNet textarea,#mkCode{height:72px;min-height:0;resize:vertical;}
+.netlog{white-space:pre-wrap;font-size:11px;background:#0a1416;border-radius:8px;padding:8px;color:#9cb9b5;max-height:220px;overflow:auto;}
 .qrbox{display:grid;place-items:center;background:#fff;border-radius:12px;padding:8px;}.qrcv{width:min(78vw,300px);height:auto;image-rendering:pixelated;}
 #scanOv{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:rgba(6,14,16,.85);}#scanOv[hidden]{display:none}
 #scanV{width:100%;max-height:60vh;border-radius:12px;background:#000;}
@@ -4414,9 +4415,16 @@ async function packDesc(d){return'CJ'+(d.type==='offer'?'O':'A')+(await zip(d.sd
 async function unpackDesc(code){const s=String(code||'').trim().replace(/\s+/g,'');if(!/^CJ[OA][01]/.test(s))return null;try{return{type:s[2]==='O'?'offer':'answer',sdp:await unzip(s.slice(3))};}catch(e){return null;}}
 const iceDone=pc=>new Promise(res=>{if(pc.iceGatheringState==='complete')return res();const f=()=>{if(pc.iceGatheringState==='complete')res();};pc.addEventListener('icegatheringstatechange',f);setTimeout(res,3000);});
 function netReset(){try{if(NET.dc)NET.dc.close();}catch(e){}try{if(NET.pc)NET.pc.close();}catch(e){}Object.assign(NET,{pc:null,dc:null,role:null,state:'menu',code:'',peerPicks:null,peerReady:false,remote:null,uidMap:new Map(),err:''});}
-function newPC(){const pc=new RTCPeerConnection({iceServers:[]});pc.onconnectionstatechange=()=>{if(['failed','disconnected','closed'].includes(pc.connectionState)&&NET.pc===pc)netLost();};return pc;}
-function wireDC(dc){NET.dc=dc;dc.onopen=()=>{NET.state='lobby';netSend({k:'hi'});sUI('win',0,0,true);if(curView==='net')renderNet();};dc.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch(_){return;}netMsg(m);};dc.onclose=()=>{if(NET.dc===dc)netLost();};}
-function netLost(){const was=NET.state;netReset();if(game&&(game.net||game.mode==='netc')){toMenu('net');}toast('相手との接続が切れました');if(curView==='net')renderNet();}
+function nlog(m){const t=new Date(),s=('0'+t.getMinutes()).slice(-2)+':'+('0'+t.getSeconds()).slice(-2);NET.log=(NET.log||[]).concat(s+' '+m).slice(-30);const e=$('netLog');if(e)e.textContent=NET.log.join('\n');}
+function candSummary(sdp){const c=(sdp||'').split('\n').filter(l=>l.indexOf('a=candidate')===0);const md=c.filter(l=>/\.local/.test(l)).length,ip=c.length-md,udp=c.filter(l=>/ udp /i.test(l)).length;return'住所 '+c.length+'件（mDNS '+md+'・IP '+ip+'・UDP '+udp+'）';}
+function newPC(){const pc=new RTCPeerConnection({iceServers:[]});NET.log=[];nlog('接続を作成（'+(navigator.userAgent.match(/iPhone|iPad|Android|CrOS|Windows|Mac/)||['?'])[0]+'）');
+  pc.oniceconnectionstatechange=()=>nlog('ICE: '+pc.iceConnectionState);
+  pc.onconnectionstatechange=()=>{nlog('接続: '+pc.connectionState);if(NET.pc!==pc)return;clearTimeout(NET.dcT);
+    if(pc.connectionState==='failed'||pc.connectionState==='closed')netLost(pc.connectionState==='failed'?'つながる道が見つかりませんでした':'');
+    else if(pc.connectionState==='disconnected'){NET.dcT=setTimeout(()=>{if(NET.pc===pc&&pc.connectionState!=='connected')netLost('通信がとぎれたまま戻りませんでした');},10000);}};
+  return pc;}
+function wireDC(dc){NET.dc=dc;dc.onopen=()=>{nlog('データ通路: open');NET.state='lobby';netSend({k:'hi'});sUI('win',0,0,true);if(curView==='net')renderNet();};dc.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch(_){return;}netMsg(m);};dc.onclose=()=>{nlog('データ通路: closed');if(NET.dc===dc)netLost('データ通路が閉じました');};}
+function netLost(why){nlog('切断'+(why?'：'+why:''));NET.lastLog=(NET.log||[]).slice();NET.lastWhy=why||'';const was=NET.state;netReset();if(game&&(game.net||game.mode==='netc')){toMenu('net');}toast('相手との接続が切れました');if(curView==='net')renderNet();}
 function netSend(m){try{if(NET.dc&&NET.dc.readyState==='open')NET.dc.send(JSON.stringify(m));}catch(e){}}
 const netErr=(step,e)=>step+'でエラー：'+((e&&(e.name+' '+e.message))||String(e)).slice(0,140);
 async function netHost(){netReset();NET.role='host';NET.state='working';renderNet();let step='準備';
@@ -4424,15 +4432,15 @@ async function netHost(){netReset();NET.role='host';NET.state='working';renderNe
     step='接続の作成';const pc=newPC();NET.pc=pc;step='通信路の作成';wireDC(pc.createDataChannel('g',{ordered:true}));
     step='部屋の情報づくり';await pc.setLocalDescription(await pc.createOffer());step='住所さがし';await iceDone(pc);
     if(!/a=candidate/.test(pc.localDescription.sdp))throw new Error('つながるための住所（candidate）が見つかりません');
-    step='コードづくり';NET.code=await packDesc(pc.localDescription);NET.state='hostOffer';}
+    nlog('親: '+candSummary(pc.localDescription.sdp));step='コードづくり';NET.code=await packDesc(pc.localDescription);NET.state='hostOffer';}
   catch(e){NET.state='menu';NET.err='部屋を作れませんでした。'+netErr(step,e);try{if(NET.pc)NET.pc.close();}catch(_){}NET.pc=null;}renderNet();}
 async function netGotCode(code){const d=await unpackDesc(code);
-  if(NET.role==='host'){if(!d||d.type!=='answer'){netMsgUI('相手の「返事のコード」ではないみたいです');return;}try{await NET.pc.setRemoteDescription(d);NET.state='connecting';renderNet();}catch(e){netMsgUI('つなげませんでした。部屋を作り直してね');}return;}
+  if(NET.role==='host'){if(!d||d.type!=='answer'){netMsgUI('相手の「返事のコード」ではないみたいです');return;}try{nlog('子の'+candSummary(d.sdp));await NET.pc.setRemoteDescription(d);NET.state='connecting';renderNet();}catch(e){netMsgUI('つなげませんでした。部屋を作り直してね');}return;}
   if(!d||d.type!=='offer'){netMsgUI('部屋のコードではないみたいです');return;}
   netReset();NET.role='guest';NET.state='working';renderNet();
   let step='準備';try{if(typeof RTCPeerConnection!=='function')throw new Error('RTCPeerConnection がありません');
     step='接続の作成';const pc=newPC();NET.pc=pc;pc.ondatachannel=e=>wireDC(e.channel);step='部屋の読み込み';await pc.setRemoteDescription(d);step='返事づくり';await pc.setLocalDescription(await pc.createAnswer());step='住所さがし';await iceDone(pc);
-    if(!/a=candidate/.test(pc.localDescription.sdp))throw new Error('つながるための住所（candidate）が見つかりません');step='コードづくり';NET.code=await packDesc(pc.localDescription);NET.state='guestAnswer';}
+    if(!/a=candidate/.test(pc.localDescription.sdp))throw new Error('つながるための住所（candidate）が見つかりません');nlog('子: '+candSummary(pc.localDescription.sdp)+' / 親の'+candSummary(d.sdp));step='コードづくり';NET.code=await packDesc(pc.localDescription);NET.state='guestAnswer';}
   catch(e){NET.state='menu';NET.err='部屋に入れませんでした。'+netErr(step,e);}renderNet();}
 function netMsgUI(s){const m=$('netMsg');if(m)m.textContent=s;sUI('nope',0,0,true);}
 /* ---- QR draw & camera scan ---- */
@@ -4466,6 +4474,7 @@ function renderNet(){const B=$('netBody');if(!B)return;const S=NET.state;let h='
     <div class="eplist" id="nList"></div>
     <p class="hint">相手：${NET.peerReady?'<b style="color:#7dffa0">えらび終わった</b>':'えらんでいるところ…'}</p>
     ${NET.role==='host'?`<button class="bigb" id="nStart" ${ready&&NET.peerReady?'':'disabled'}>対戦スタート！</button>`:'<p class="hint">親が「対戦スタート」を押すと始まります</p>'}<button class="backb" id="nCancel">接続をやめる</button>`;}
+  const LG=S==='menu'?(NET.lastLog||[]):(NET.log||[]);if(LG.length)h+=`<details${S==='menu'&&NET.lastLog?' open':''}><summary>診断情報（うまくいかないときはここのスクショを送ってね）</summary>${S==='menu'&&NET.lastWhy?'<p class="hint" style="color:#ff8a6a">'+NET.lastWhy+'</p>':''}<pre id="netLog" class="netlog">${LG.join('\n')}</pre></details>`;
   B.innerHTML=h;
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f;};
   on('nHost',()=>{audioInit();netHost();});on('nJoin',()=>{audioInit();NET.role='guest';NET.state='join';renderNetJoin();});
