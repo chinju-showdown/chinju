@@ -134,6 +134,13 @@ h1 .tilt{display:inline-block;transform:rotate(-4deg);color:var(--saffron);}
 .rstats b{display:block;font-size:20px;}
 .rstats span{font-size:11px;color:var(--mute);}
 .rbtns{display:flex;flex-direction:column;gap:8px;}
+.rleft,.rright{display:flex;flex-direction:column;gap:8px;min-width:0;}
+#rReplay{margin:2px auto 0;}#rReplay[hidden]{display:none}
+.short .rcard{max-width:700px;flex-direction:row;align-items:center;gap:16px;padding:12px 16px;}
+.short .rleft,.short .rright{flex:1;gap:6px;}
+.short .rank{font-size:40px;}.short .tro span{font-size:22px;}.short .rsub{font-size:13px;}
+.short .rstats div{padding:6px 4px;}.short .rstats b{font-size:18px;}
+.short .rbtns .go{font-size:15px;padding:10px;}
 .rbtns>*{flex:1;}.rbtns .go{font-size:16px;padding:12px;max-width:none;}
 .ghost{border:1px solid var(--line);background:transparent;color:var(--text);border-radius:14px;padding:12px;font-weight:800;}
 /* ---------- views / home ---------- */
@@ -419,24 +426,25 @@ h1 .tilt{display:inline-block;transform:rotate(-4deg);color:var(--saffron);}
   <div class="eplist" id="epList"></div><button class="backb" id="epLater">あとでえらぶ</button></div></div>
 <div id="pauseOv" hidden><div class="rcard"><div class="rank">一時停止</div><div class="rsub">ゲームを止めています</div><div class="rbtns"><button class="go" id="resumeB">再開</button><button class="ghost" id="pquitB">やめる</button></div></div></div>
 <div id="result" hidden>
-  <div class="rcard">
+  <div class="rcard"><div class="rleft">
     <div class="rsub" id="rTitle">結果</div>
     <div class="rank" id="rRank">#1</div>
     <div class="tro"><span id="rTro">+0</span><small id="rTroTotal"></small></div>
     <div class="rsub" id="rMsg"></div>
     <div class="unlock" id="rUnlock" hidden></div>
     <div class="resbar" id="rReward" style="justify-content:center"></div>
+    </div><div class="rright">
     <div class="rstats">
       <div><b id="rKills">0</b><span>撃破</span></div>
       <div><b id="rCubes">0</b><span>キューブ</span></div>
       <div><b id="rTime">0:00</b><span>生存時間</span></div>
     </div>
-    <button class="backb" id="rReplay" hidden style="margin:4px auto 0;display:block">▶ この試合のリプレイを見る</button>
+    <button class="backb" id="rReplay" hidden>▶ この試合のリプレイを見る</button>
     <div class="rbtns" style="flex-direction:row">
       <button class="go" id="again">同じ珍獣で再戦</button>
       <button class="ghost" id="back">珍獣を選び直す</button>
     </div>
-  </div>
+  </div></div>
 </div>
 </div>
 
@@ -2886,7 +2894,7 @@ function resize(){DPR=Math.min(2,window.devicePixelRatio||1);const W=innerWidth,
   const cs=getComputedStyle($('safeprobe'));const d={t:parseFloat(cs.paddingTop)||0,r:parseFloat(cs.paddingRight)||0,b:parseFloat(cs.paddingBottom)||0,l:parseFloat(cs.paddingLeft)||0};
   SA=ROT?{t:d.r,r:d.b,b:d.l,l:d.t}:d;
   const q=$('hudbtns');q.style.top=(SA.t+10)+'px';q.style.right=(SA.r+12)+'px';
-  SCALE=VH/620;}
+  SCALE=VH/620;$('stage').classList.toggle('short',VH<520);}
 function toLocal(e){return ROT?{x:e.clientY,y:innerWidth-e.clientX}:{x:e.clientX,y:e.clientY};}
 addEventListener('resize',resize);resize();
 
