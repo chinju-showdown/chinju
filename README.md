@@ -4,7 +4,7 @@
 
 ▶ **遊ぶ**：https://chinju-showdown.github.io/chinju/
 
-📝 **最新バージョン**：1.6.1（2026/11/4）　→ [更新履歴](CHANGELOG.md)
+📝 **最新バージョン**：1.6.2（2026/11/4）　→ [更新履歴](CHANGELOG.md)
 
 𝕏 **公式X**：[@chinju_showdown](https://x.com/chinju_showdown)（新しい珍獣やアップデートのお知らせ）
 
