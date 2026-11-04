@@ -3192,6 +3192,10 @@ function resolve(u){
   u.x=Math.max(r,Math.min(WORLD-r,u.x));u.y=Math.max(r,Math.min(WORLD-r,u.y));
 }
 function moveUnit(u,vx,vy,dt){u.x+=vx*dt;resolve(u);u.y+=vy*dt;resolve(u);}
+/* a flyer perched on a wall can be shot: shots entering a wall near such a foe fly over it */
+const perched=o=>o&&o.alive&&o.ch&&o.ch.fly&&!(o.skyT>0)&&solid(tileAt(o.x,o.y));
+function perchFoe(x,y,owner){for(const o of units)if(perched(o)&&foe(o,owner)&&Math.hypot(o.x-x,o.y-y)<TILE*2.5)return true;return false;}
+function losT(u,t){return perched(t)?los(u.x,u.y,t.x,t.y,TILE*2.5):los(u.x,u.y,t.x,t.y);}
 function los(x1,y1,x2,y2,skipEnd=0){const d=Math.hypot(x2-x1,y2-y1),n=Math.ceil(d/18),s0=tIdx(x1,y1),s1=tIdx(x2,y2);for(let i=1;i<n;i++){const f=i/n;if(d*(1-f)<skipEnd)break;const X=x1+(x2-x1)*f,Y=y1+(y2-y1)*f,k=tIdx(X,Y);if(k!==s0&&k!==s1&&solid(tileAt(X,Y)))return false;}return true;}
 function freeSpot(x,y){if(!solid(tileAt(x,y)))return{x,y};for(let rad=1;rad<6;rad++)for(let a=0;a<TAU;a+=0.5){const X=x+Math.cos(a)*rad*TILE*0.6,Y=y+Math.sin(a)*rad*TILE*0.6;if(X>30&&Y>30&&X<WORLD-30&&Y<WORLD-30&&!solid(tileAt(X,Y)))return{x:X,y:Y};}return{x,y};}
 
@@ -3619,7 +3623,7 @@ function decide(u){
       else{const want=ch.melee?0:R*0.7;const f=d>want+40?1:(d<want-70?-1:0);const sf=ch.melee?(d<R*3?0.15:0.45):0.8;
         mx=Math.cos(ang)*f-Math.sin(ang)*ai.strafe*sf;my=Math.sin(ang)*f+Math.cos(ang)*ai.strafe*sf;if(rnd()<0.1)ai.strafe*=-1;}
     }
-    if(d<=R*0.95+tgt.r*0.5&&u.ammo>=1&&ai.shootCd<=0&&(a.type==='lob'||a.type==='aura'||los(u.x,u.y,tgt.x,tgt.y))){
+    if(d<=R*0.95+tgt.r*0.5&&u.ammo>=1&&ai.shootCd<=0&&(a.type==='lob'||a.type==='aura'||losT(u,tgt))){
       const lead=d/(a.speed||700)*(u.DF||game.DF).lead,px=tgt.x+tgt.vx*lead,py=tgt.y+tgt.vy*lead;
       const aa=Math.atan2(py-u.y,px-u.x)+(rnd()-.5)*(u.DF||game.DF).noise;fire(u,aa,Math.hypot(px-u.x,py-u.y)/R);ai.shootCd=(0.4+rnd()*0.8)*(u.DF||game.DF).cd;
     }
@@ -3783,6 +3787,7 @@ function update(dt){
       if(p.launch&&!solid(grid[ti]))p.launch=false; /* shot from on top of a wall (flyers) */
       /* units first, so a flyer standing on a wall can still be hit */
       for(const o of units){if(!foe(o,p.owner)||!o.alive||o.leap||p.hit.has(o)||untouchable(o))continue;if(Math.hypot(o.x-p.x,o.y-p.y)<o.r+p.r){p.hit.add(o);const dealt=hurt(o,p.dmg*(p.fullHp&&o.hp>=o.maxHp?2:1),p.owner,{noCharge:p.isSuper,crit:p.crit});extOnHit(p,o,dealt||0);if(!p.pierce){dead=true;break;}}}
+      if(!dead&&!p.launch&&!p.ignoreWalls&&solid(grid[ti])&&perchFoe(p.x,p.y,p.owner))p.launch=true;
       if(!dead&&!p.launch){
         if(grid[ti]===1&&!p.ignoreWalls){if(p.bounce>0){p.bounce--;const px0=p.x-p.vx*dt/steps,py0=p.y-p.vy*dt/steps;if(solid(tileAt(px0,p.y)))p.vy*=-1;else p.vx*=-1;p.x=px0;p.y=py0;}else dead=true;}
         else if(grid[ti]===3){if(p.ignoreWalls){if(!p.hitBox.has(ti)){p.hitBox.add(ti);hurtBox(ti,p.dmg,p.owner);}}else{hurtBox(ti,p.dmg,p.owner);dead=true;}}}
