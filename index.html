@@ -3259,7 +3259,7 @@ function kill(t,src){
 function shoot(u,ang,a,ex={}){
   const sx=u.x+Math.cos(ang)*u.r*0.5,sy=u.y+Math.sin(ang)*u.r*0.5;
   projs.push({x:sx,y:sy,vx:Math.cos(ang)*a.speed,vy:Math.sin(ang)*a.speed,dmg:(ex.dmg||a.dmg)*mul(u)*(u.shotMul||1)+(ex.isSuper?0:(u.shotAdd||0)),owner:u,blind:a.blind,homing:!!(a.homing||u.homingT>0||u.critShot),turn:a.turn,bounce:a.bounce||0,poison:a.poison,pull:a.pull,knock:a.knock,chain:a.chain,explode:a.explode,ls:a.ls,seal:a.seal,fullHp:a.fullHp,crit:!!u.critShot,travel:0,max:a.range,r:a.r,pierce:!!a.pierce,hit:new Set(),hitBox:new Set(),
-    shape:a.shape||'dot',color:a.color,ignoreWalls:!!ex.ignoreWalls,launch:solid(tileAt(sx,sy)),wob:a.wobble?rnd()*6:null,isSuper:!!ex.isSuper,age:0});
+    shape:a.shape||'dot',color:a.color,ignoreWalls:!!ex.ignoreWalls,launch:solid(tileAt(sx,sy)),lt:tIdx(u.x,u.y),wob:a.wobble?rnd()*6:null,isSuper:!!ex.isSuper,age:0});
 }
 function lob(u,tx,ty,dmg,aoe,T,shape,breakWalls,isSuper){
   projs.push({lob:true,sx:u.x,sy:u.y,tx,ty,x:u.x,y:u.y,t:0,T,dmg:dmg*mul(u),aoe,shape,owner:u,breakWalls,isSuper,spin:rnd()*TAU});
@@ -3788,6 +3788,7 @@ function update(dt){
       /* units first, so a flyer standing on a wall can still be hit */
       for(const o of units){if(!foe(o,p.owner)||!o.alive||o.leap||p.hit.has(o)||untouchable(o))continue;if(Math.hypot(o.x-p.x,o.y-p.y)<o.r+p.r){p.hit.add(o);const dealt=hurt(o,p.dmg*(p.fullHp&&o.hp>=o.maxHp?2:1),p.owner,{noCharge:p.isSuper,crit:p.crit});extOnHit(p,o,dealt||0);if(!p.pierce){dead=true;break;}}}
       if(!dead&&!p.launch&&!p.ignoreWalls&&solid(grid[ti])&&perchFoe(p.x,p.y,p.owner))p.launch=true;
+      if(!dead&&p.launch&&!p.ignoreWalls&&grid[ti]===3&&ti!==p.lt){hurtBox(ti,p.dmg,p.owner);dead=true;}
       if(!dead&&!p.launch){
         if(grid[ti]===1&&!p.ignoreWalls){if(p.bounce>0){p.bounce--;const px0=p.x-p.vx*dt/steps,py0=p.y-p.vy*dt/steps;if(solid(tileAt(px0,p.y)))p.vy*=-1;else p.vx*=-1;p.x=px0;p.y=py0;}else dead=true;}
         else if(grid[ti]===3){if(p.ignoreWalls){if(!p.hitBox.has(ti)){p.hitBox.add(ti);hurtBox(ti,p.dmg,p.owner);}}else{hurtBox(ti,p.dmg,p.owner);dead=true;}}}
