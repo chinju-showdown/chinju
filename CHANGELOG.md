@@ -2,6 +2,10 @@
 
 遊ぶ：https://chinju-showdown.github.io/chinju/
 
+## 1.15.0（2026/11/6）
+
+- 言語に「Tiếng Việt（ベトナム語）」と「ภาษาไทย（タイ語）」を追加
+
 ## 1.14.0（2026/11/6）
 
 - 言語に「Português（ポルトガル語）」と「Bahasa Indonesia（インドネシア語）」を追加
