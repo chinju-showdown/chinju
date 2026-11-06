@@ -4,7 +4,7 @@
 
 ▶ **遊ぶ**：https://chinju-showdown.github.io/chinju/
 
-📝 **最新バージョン**：1.13.0（2026/11/6）　→ [更新履歴](CHANGELOG.md)
+📝 **最新バージョン**：1.14.0（2026/11/6）　→ [更新履歴](CHANGELOG.md)
 
 𝕏 **公式X**：[@chinju_showdown](https://x.com/chinju_showdown)（新しい珍獣やアップデートのお知らせ）
 
@@ -15,7 +15,7 @@
 - ちびペット冒険記：卵から育てるペットのRPG
 - 2人で遊ぶ：スマホどうしで直接対戦（サーバーなし）
 - マップ作り・珍獣図鑑・称号106個・リプレイ
-- 日本語 / English / 한국어 / 中文（简体） / 中文（繁體） / Español
+- 日本語 / English / 한국어 / 中文（简体） / 中文（繁體） / Español / Português / Bahasa Indonesia
 
 ## 遊び方
 
