@@ -2475,19 +2475,19 @@ const HK=[
    hp:7400,speed:215,reload:1.0,draw:drawKraken,
    atk:{name:'大墨玉',desc:'大きな墨の玉を投げる。壁を越えて当たり、広く飛び散る。',type:'lob',range:420,dmg:1500,aoe:100,flight:0.6,shape:'ink',color:'#2a1a2a'},
    sup:{name:'大渦の触手',desc:'周りの敵に触手を巻きつけ、1秒動けなくしてダメージを与える。',type:'hkbind',range:260}},
-  {id:'roc',base:'hige',need:801,rar:3,fly:true,name:'ロック鳥',sci:'Rukh gigantea',hab:'空',role:'岩を運ぶ巨鳥',fact:'アラビアの伝説の巨大な鳥。ゾウをつかんで飛び、大きな岩を船に落としたといわれる。',
+  {id:'roc',base:'hige',need:601,rar:3,fly:true,name:'ロック鳥',sci:'Rukh gigantea',hab:'空',role:'岩を運ぶ巨鳥',fact:'アラビアの伝説の巨大な鳥。ゾウをつかんで飛び、大きな岩を船に落としたといわれる。',
    hp:8600,speed:220,reload:1.2,draw:drawRoc,
    atk:{name:'岩落とし',desc:'壁を越えて岩を投げ落とす。着地した場所の周りにダメージ。',type:'lob',range:450,dmg:2000,aoe:90,flight:0.7,shape:'rock',color:'#8a8a92'},
    sup:{name:'山落とし',desc:'巨大な岩を3つ続けて落とす。広い範囲に大ダメージを与え、壁もまとめて砕く。',type:'hkrocks',range:480}},
-  {id:'pouakai',base:'kakapo',need:801,rar:3,fly:true,name:'ポウアカイ',sci:'Pouakai maorii',hab:'空',role:'伝説の巨鳥',fact:'ニュージーランドのマオリの伝説に出てくる、人をさらうほど巨大な鳥。実在した巨大なワシ、ハーストイーグルがもとになったともいわれる。',
+  {id:'pouakai',base:'kakapo',need:601,rar:3,fly:true,name:'ポウアカイ',sci:'Pouakai maorii',hab:'空',role:'伝説の巨鳥',fact:'ニュージーランドのマオリの伝説に出てくる、人をさらうほど巨大な鳥。実在した巨大なワシ、ハーストイーグルがもとになったともいわれる。',
    hp:9600,speed:230,reload:1.0,draw:drawPouakai,
    atk:{name:'巨大羽根',desc:'5枚の大きな羽根を扇状に飛ばす。',type:'spread',n:5,spread:0.4,range:330,speed:1000,dmg:520,r:13,shape:'feather',color:'#8a6a3a'},
    sup:{name:'急降下',desc:'低い声で周りの敵を引き寄せ、空へ舞い上がってから、その場所に急降下して大ダメージ。',type:'hkdive',range:380,dmg:2800,rad:150}},
-  {id:'dracula',base:'vampbat',need:1201,rar:4,fly:true,name:'ドラキュラ',sci:'Comes Dracula',hab:'伝説',role:'吸血鬼の伯爵',fact:'ヨーロッパの物語に出てくる吸血鬼の伯爵。夜になるとコウモリに姿を変えるといわれる。',
+  {id:'dracula',base:'vampbat',need:1001,rar:4,fly:true,name:'ドラキュラ',sci:'Comes Dracula',hab:'伝説',role:'吸血鬼の伯爵',fact:'ヨーロッパの物語に出てくる吸血鬼の伯爵。夜になるとコウモリに姿を変えるといわれる。',
    hp:13000,speed:262,reload:0.8,draw:drawDracula,
    atk:{name:'吸血の牙',desc:'かみついて、与えたダメージの半分の体力を吸い取る。',type:'spread',n:1,range:240,speed:1200,dmg:2100,r:16,shape:'bite',color:'#8a0a1a',ls:0.5},
    sup:{name:'コウモリ変化',desc:'周りの敵から体力を吸い取り、2秒間コウモリの群れになる。その間は攻撃が当たらず、速く動ける。隠れた敵も見えるようになる。',type:'hkbat',range:280}},
-  {id:'beelz',base:'fruitfly',need:3000,rar:4,fly:true,small:true,name:'ベルゼブブ',sci:'Beelzebub rex muscarum',hab:'伝説',role:'ハエの王',fact:'「ハエの王」と呼ばれる悪魔。ハエの大群をしたがえているといわれる。',
+  {id:'beelz',base:'fruitfly',need:1501,rar:4,fly:true,small:true,name:'ベルゼブブ',sci:'Beelzebub rex muscarum',hab:'伝説',role:'ハエの王',fact:'「ハエの王」と呼ばれる悪魔。ハエの大群をしたがえているといわれる。',
    hp:11500,speed:290,reload:0.5,draw:drawBeelz,
    atk:{name:'ハエの弾幕',desc:'すばやい3連続の攻撃。体が小さく、攻撃が当たりにくい。',type:'burst',n:3,interval:0.07,range:240,speed:1250,dmg:700,r:9,shape:'dot',color:'#3aa02a'},
    sup:{name:'暴食の大群',desc:'巨大なハエの大群を呼び、周りの敵にまとわりつかせる。ダメージを与えて狙いをぶれさせ、自分の体力も回復する。',type:'hkgluttony',range:380}}];
@@ -6126,7 +6126,7 @@ function hkShow(){if(hkOpen||!hkQ.length)return;const ch=hkQ.shift(),b=chById(ch
   ov.onclick=()=>{if(performance.now()-t0<2300)return;ov.remove();hkOpen=false;try{if(!game)renderMenuSafe();}catch(e){}if(hkQ.length)setTimeout(hkShow,300);};}
 function renderMenuSafe(){try{if(typeof renderZukan==='function'&&!$('vZukan').hidden)renderZukan();}catch(e){}}
 function hkHint(ch){const h=HK.find(x=>x.base===ch.id);if(!h)return'';if(unlocked(h))return`<p class="hkhint">${tf('✨ この珍獣を育てて、{0}が仲間になった。',h.name)}</p>`;
-  return`<p class="hkhint">${tl(h.need>=1200?'🔮 この珍獣を極めた者だけが…？':'🔮 この珍獣を育てると…？')}</p>`;}
+  return`<p class="hkhint">${tl(h.need>=1000?'🔮 この珍獣を極めた者だけが…？':'🔮 この珍獣を育てると…？')}</p>`;}
 setTimeout(()=>{try{if(!game)hkCheck();}catch(e){}},1500);
 
 /* ---- egg chooser ---- */
