@@ -1,5 +1,5 @@
 /* 珍獣ショーダウン service worker: いつもネットの最新版を先に読み、つながらないときだけ保存した版を使う */
-const C='chinju-v72';
+const C='chinju-v73';
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'])).catch(()=>{}).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim());});
 self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET'||new URL(r.url).origin!==location.origin)return;
